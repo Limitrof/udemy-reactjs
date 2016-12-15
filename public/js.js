@@ -17,7 +17,42 @@ function TodoList({todos, onSetTodoStatus}) {
 				</li>)}
 			</ul>
 		);//{items}
+		
+
 }
+class TodoForm extends React.Component {
+	constructor(props) {
+		super(props);
+		this._onSubmit = this._onSubmit.bind(this);
+	}
+	render(){
+		return(
+			<form onSubmit={this._onSubmit}>
+				<input type="text" ref={input => this._todoText = input}/>
+				<button>Add todo</button>
+			</form>
+		); 
+	}
+	
+	focusInput() {
+		this._todoText.focus();
+	}
+	
+	_onSubmit(e){
+		e.preventDefault();
+		const todoText = this._todoText.value.trim();
+		if (todoText.length == 0)
+			return;
+		
+		this._todoText.value = "";
+		this.props.onAddTodo(todoText);
+	}
+}
+
+TodoForm.propTypes = {
+	onAddTodo: React.PropTypes.func.isRequired
+}
+
 class AppComponent extends React.Component {
 	constructor(props) {
 		super(props);
@@ -36,22 +71,50 @@ class AppComponent extends React.Component {
 		this.decrement = this.decrement.bind(this);
 		this._onShowCompletedChanged = this._onShowCompletedChanged.bind(this);
 		this._setTodoStatus = this._setTodoStatus.bind(this);
+		this._setTodoStatus = this._setTodoStatus.bind(this);
+		this._addTodo = this._addTodo.bind(this);
 	}
+	
+	componentDidMount() {
+	this._todoForm.focusInput(); //[this._todoForm] 
+	}
+	
 	render(){
 		const{filter,todos,cnt,ttl}=this.state;
 		const filteredTodos = filter.showCompleted ? todos : todos.filter(todo => !todo.isCompleted);
-		return (<div className="some">{cnt}
+		
+		let date = new Date().toJSON().slice(0,10).toString();
+		while (date.indexOf("-") > 0){
+			date = date.replace("-",".");
+		}
+
+/* 		while(date.indexOf('-')>0) {
+			//date.replace("-",".");
+		} */
+		return (<div className="some">{date} - на сегодня {cnt} задач:
 				<button onClick={this.decrement}>-</button>
 				<button onClick={this.increment}>+</button>
 				<button onClick={this.incdec}>7</button>
 				<h2>Todo List...</h2>
 				<label>Completed
 					<input type="checkbox" checked={filter.showCompleted} onChange={this._onShowCompletedChanged}/>
-				</label><TodoList todos={filteredTodos} onSetTodoStatus={this._setTodoStatus} />
+				</label>
+				<TodoList todos={filteredTodos} onSetTodoStatus={this._setTodoStatus} />
+				<TodoForm onAddTodo={this._addTodo} ref={form => this._todoForm = form}/>
 				</div>);
 	}
+	
+	_addTodo(text) {
+		this.setState({
+			todos: this.state.todos.concat({
+				id: this._nextTodoId++,
+				text,
+				isCompleted: false
+			})
+		});
+	}
+	
 	_setTodoStatus(todo, isCompleted){
-		console.log(todo + isCompleted);
 		const{todos} = this.state;
 		const newTodos = todos.map(currTodo => {
 			if (currTodo.id !== todo.id)
@@ -70,7 +133,7 @@ class AppComponent extends React.Component {
 	incdec(){
 		const{cnt}=this.state;
 		this.setState({cnt:7});
-		console.log('incdec'+this);
+		console.log('just set 7');
 	}
 	decrement(){
 		const{cnt}=this.state;
